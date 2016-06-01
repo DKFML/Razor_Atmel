@@ -148,7 +148,7 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
-  static u16 u16BlinkFrequence[] = {50,200,500,1000,1500};
+  static u16 u16BlinkFrequence[] = {LED_1HZ,LED_2HZ,LED_4HZ,LED_8HZ};
   static u8 u8TheFrequcece = 0;
   
   static u16 u16BlinkCounter = 0;
@@ -158,7 +158,7 @@ static void UserAppSM_Idle(void)
     ButtonAcknowledge(BUTTON0);
     u8TheFrequcece++;
     u16BlinkCounter = 0 ;
-    if(u8TheFrequcece == 5)
+    if(u8TheFrequcece == 4)
     {
       u8TheFrequcece = 0;
     }
