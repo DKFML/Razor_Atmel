@@ -88,6 +88,20 @@ Promises:
 */
 void UserAppInitialize(void)
 {
+   /* All discrete LEDs to off */
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  
+  /* Backlight to white */  
+  LedOn(LCD_RED);
+  LedOn(LCD_GREEN);
+  LedOn(LCD_BLUE);
   
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -137,7 +151,86 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
+  static LedNumberType aeCurrentLedlamp[]  = {WRITE, PURPLE, BLUE, CYAN,GREEN,YELLOW, ORANGE, RED};
+  
+  static LedNumberType aeCurrentLed[]  = {LCD_BLUE, LCD_RED,LCD_GREEN,  LCD_BLUE, LCD_RED, LCD_GREEN};
+  static bool abLedRateIncreasing[]   = {TRUE,      FALSE,   TRUE,     FALSE,     TRUE,    FALSE};
+  static u8 u8CurrentLedIndex  = 0;
+  static u8 u8LedCurrentLevel  = 0;
+  static u8 u8DutyCycleCounter = 0;
+  static u16 u16Counterlamp =COLOR_CYCLE_TIME;
+  static u16 u16Counter = COLOR_CYCLE_TIME;
+  static u8 u8currentledindex = 0;
+  u16Counterlamp--;
+  if(u16Counterlamp == 0)
+  {
+     LedOff(CYAN);
+     LedOff(GREEN);
+     u16Counterlamp = COLOR_CYCLE_TIME;
     
+    
+    
+    LedOn(aeCurrentLedlamp[u8currentledindex]);
+    LedOn(aeCurrentLedlamp[7-u8currentledindex]);
+    u8currentledindex++;
+    if(u8currentledindex == 4)
+    {
+      u8currentledindex = 0;
+       /* All discrete LEDs to off */
+      LedOff(WHITE);
+      LedOff(PURPLE);
+      LedOff(BLUE);
+      
+      LedOff(YELLOW);
+      LedOff(ORANGE);
+      LedOff(RED);
+    }
+    
+    
+    
+  }
+  
+  u16Counter--;
+  /* Check for update color every COLOR_CYCLE_TIME ms */  
+  if(u16Counter == 0)
+  {
+    u16Counter = COLOR_CYCLE_TIME;
+
+    /* Update the current level based on which way it's headed */
+    /* Update the current level based on which way it's headed */
+    if( abLedRateIncreasing[u8CurrentLedIndex] )
+    {
+      u8LedCurrentLevel++;
+    }
+    else
+    {
+      u8LedCurrentLevel--;
+    }
+
+    /* Change direction once we're at the end */
+    u8DutyCycleCounter++;
+    if(u8DutyCycleCounter == 20)
+    {
+      u8DutyCycleCounter = 0;
+      
+      /* Watch for the indexing variable to reset */
+      u8CurrentLedIndex++;
+      if(u8CurrentLedIndex == sizeof(aeCurrentLed))
+      {
+        u8CurrentLedIndex = 0;
+      }
+      
+      /* Set the current level based on what direction we're now going */
+      u8LedCurrentLevel = 20;
+      if(abLedRateIncreasing[u8CurrentLedIndex])
+      {
+         u8LedCurrentLevel = 0;
+      }
+    }
+    /* Update the value to the current LED */   
+    LedPWM( (LedNumberType)aeCurrentLed[u8CurrentLedIndex], (LedRateType)u8LedCurrentLevel);
+  }
+  
 } /* end UserAppSM_Idle() */
      
 
