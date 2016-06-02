@@ -89,15 +89,6 @@ Promises:
 void UserAppInitialize(void)
 {
   
-  LedOff(WHITE);
-  LedOff(PURPLE);
-  LedOff(BLUE);
-  LedOff(CYAN);
-  LedOff(GREEN);
-  LedOff(YELLOW);
-  LedOff(ORANGE);
-  LedOff(RED);
-  
   
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -148,44 +139,7 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
-  static u16 u16BlinkFrequence[] = {LED_1HZ,LED_2HZ,LED_4HZ,LED_8HZ};
-  static u8 u8TheFrequcece = 0;
-  
-  static u16 u16BlinkCounter = 0;
-  
-  if(WasButtonPressed(BUTTON0))
-  {
-    ButtonAcknowledge(BUTTON0);
-    u8TheFrequcece++;
-    u16BlinkCounter = 0 ;
-    if(u8TheFrequcece == 4)
-    {
-      u8TheFrequcece = 0;
-    }
-  }
-  
-  u16BlinkCounter++;
-  if(u16BlinkCounter == u16BlinkFrequence[u8TheFrequcece])
-  {
-    u16BlinkCounter = 0;
-    LedToggle(YELLOW);
-  }
-  if(IsButtonPressed(BUTTON1))
-  {
-    LedOn(PURPLE);
-  }
-  else
-  {
-    LedOff(PURPLE);
-  }
-  if(IsButtonPressed(BUTTON2))
-  {
-    LedOn(BLUE);
-  }
-  else
-  {
-    LedOff(BLUE);
-  }
+
 } /* end UserAppSM_Idle() */
      
 
