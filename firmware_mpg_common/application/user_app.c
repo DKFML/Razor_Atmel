@@ -91,15 +91,20 @@ void UserAppInitialize(void)
   u8 u8String[] = "A string to print that returns cursor to start of next line.\n\r";
   u8 u8String2[] = "Here's a number: ";
   u8 u8String3[] = " The 'cursor' was here.";
+  u8 u8String4[] = "Ye Chenxiao";
   u32 u32Number = 1234567;
+  
+  static u8 u8timescounter = 0;
 
-  DebugPrintf(u8String);
-  DebugPrintf(u8String2);
-  DebugPrintNumber(u32Number);
-  DebugPrintf(u8String3);
-  DebugLineFeed();
-  DebugPrintf(u8String3);
-  DebugLineFeed();
+  while(u8timescounter <10)
+  {
+    DebugPrintf(u8String4);
+    DebugLineFeed();
+    u8timescounter++;
+  }
+  
+  
+  
   
   
   /* If good initialization, set state to Idle */
