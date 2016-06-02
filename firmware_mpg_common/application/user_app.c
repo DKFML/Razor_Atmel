@@ -144,7 +144,7 @@ static void UserAppSM_Idle(void)
   
   u16buzzercounter++;
   
-  if(u16buzzercounter == 800)
+  if(u16buzzercounter == 350)
   {
     u16buzzercounter=0;
     PWMAudioSetFrequency(BUZZER1, u16buzzerrate[u8button]);
