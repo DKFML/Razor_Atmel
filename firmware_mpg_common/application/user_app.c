@@ -91,6 +91,19 @@ Promises:
 */
 void UserAppInitialize(void)
 {
+  u8 u8String[] = "A string to print that returns cursor to start of next line.\n\r";
+  u8 u8String2[] = "Here's a number: \n\r";
+  u8 u8String3[] = "The 'cursor' was here.\n";
+  u32 u32Number = 1234567;
+
+  DebugPrintf(u8String);
+  DebugPrintf(u8String2);
+  DebugPrintNumber(u32Number);
+  DebugPrintf(u8String3);
+  DebugLineFeed();
+  DebugPrintf(u8String3);
+  DebugLineFeed();
+  
   /*Display my name and which group i am in*/
   LCDCommand(LCD_CLEAR_CMD);
   LCDMessage(LINE1_START_ADDR, User_name);
@@ -163,8 +176,8 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
-  static u8 u8NumCharsMessage[] = "\n\rCharacters in buffer: ";
-  static u8 u8BufferMessage[]   = "\n\rBuffer contents:\n\r";
+  static u8 u8NumCharsMessage[] = "Characters in buffer: ";
+  static u8 u8BufferMessage[]   = "rBuffer contents:\n\r";
   u8 u8CharCount;
   /* Print message with number of characters in scanf buffer */
   if(WasButtonPressed(BUTTON0))
@@ -175,8 +188,28 @@ static void UserAppSM_Idle(void)
     DebugPrintNumber(G_u8DebugScanfCharCount);
     DebugLineFeed();
   }
+  if(WasButtonPressed(BUTTON1))
+  {
+    ButtonAcknowledge(BUTTON1);
+    
+    /* Read the buffer and print the contents */
+    u8CharCount = DebugScanf(au8UserInputBuffer);
+    au8UserInputBuffer[u8CharCount] = '\0';
+    
+    /* Make sure there's at least one character in there! */
+    if(u8CharCount > 0)
+    {
+      DebugPrintf(au8UserInputBuffer);
+      DebugLineFeed();
+    }
+    else
+    {
+    WEQ  DebugPrintf("EMPTY");
+    }
+  }
   
-  LCDMessage(LINE2_START_ADDR, au8UserInputBuffer);
+  LCDMessage(LINE2_START_ADDR, u8NumCharsMessage);
+  LCDMessage(LINE1_START_ADDR, au8UserInputBuffer);
 } /* end UserAppSM_Idle() */
      
 
