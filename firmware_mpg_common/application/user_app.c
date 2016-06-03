@@ -60,6 +60,7 @@ Variable names shall start with "UserApp_" and be declared as static.
 static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
 static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
+static User_name[] = "X.YeChenxiao";
 
 /**********************************************************************************************************************
 Function Definitions
@@ -88,6 +89,28 @@ Promises:
 */
 void UserAppInitialize(void)
 {
+  /*Display my name and which group i am in*/
+  LCDMessage(LINE1_START_ADDR, User_name);
+  
+  /*My favorite backlight color*/
+  
+  
+  /* All discrete LEDs to off */
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  
+  /* Backlight to purple */  
+  LedOn(LCD_RED);
+  LedOn(LCD_GREEN);
+  LedOn(LCD_BLUE);
+  
+  
   
   /* If good initialization, set state to Idle */
   if( 1 )
