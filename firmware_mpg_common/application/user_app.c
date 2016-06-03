@@ -60,7 +60,8 @@ Variable names shall start with "UserApp_" and be declared as static.
 static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
 static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
 
-
+static u8 UserApp_au8MyName[] = "Ye Chenxiao"; 
+static u8 UserApp_CursorPosition = 0;
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -88,7 +89,24 @@ Promises:
 */
 void UserAppInitialize(void)
 {
+  u8 au8Message[] = "Hellow Word!";
   
+  LCDMessage(LINE1_START_ADDR, au8Message);
+  LCDClearChars(LINE1_START_ADDR + 13, 3);
+  LCDCommand(LCD_CLEAR_CMD);
+  
+  /*Write my name on line 1*/
+  LCDMessage(LINE1_START_ADDR, UserApp_au8MyName);
+  
+  /*Add button labels above each of the buttons*/
+  LCDMessage(LINE2_START_ADDR,"0");
+  LCDMessage(LINE2_START_ADDR + 6,"1");
+  LCDMessage(LINE2_START_ADDR + 13,"2");
+  LCDMessage(LINE2_END_ADDR ,"3");
+  
+  /* Home the cursor */
+  LCDCommand(LCD_HOME_CMD);  
+
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -137,9 +155,114 @@ State Machine Function Definitions
 /* Wait for a message to be queued */
 static void UserAppSM_Idle(void)
 {
+  static bool bCursorOn = FALSE;
+  static u8 u8counterforUserApp_au8MyName = 11;
+
+  
+   
+  
+  if(WasButtonPressed(BUTTON0))
+  {
+    ButtonAcknowledge(BUTTON0);
     
+    if(bCursorOn)
+    {
+      /* Cursor is on, so turn it off */
+      LCDCommand(LCD_DISPLAY_CMD | LCD_DISPLAY_ON);
+      bCursorOn = FALSE;
+    }
+    else
+    {
+      /* Cursor is off, so turn it on */
+      
+      LCDCommand(LCD_DISPLAY_CMD | LCD_DISPLAY_ON | LCD_DISPLAY_CURSOR | LCD_DISPLAY_BLINK);
+      bCursorOn = TRUE;
+   }
+  }
+  /* BUTTON3 moves the cursor forward one position */
+  if(WasButtonPressed(BUTTON3))
+  {
+    ButtonAcknowledge(BUTTON3);
+    
+    
+    /* Handle the two special cases or just the regular case */
+    
+    /* Otherwise just increment one space */
+    UserApp_CursorPosition++;
+    LCDCommand(LCD_CLEAR_CMD);
+    if(UserApp_CursorPosition <= 8)
+    {
+      LCDMessage(LINE1_START_ADDR + UserApp_CursorPosition, UserApp_au8MyName);
+    }
+    else if(UserApp_CursorPosition > 8 && UserApp_CursorPosition <= 19)
+    {
+      LCDMessage(LINE1_START_ADDR + UserApp_CursorPosition, UserApp_au8MyName);
+      LCDMessage(LINE2_START_ADDR , & UserApp_au8MyName[20-UserApp_CursorPosition]);
+    }
+    else if(UserApp_CursorPosition >19 && UserApp_CursorPosition <= 28)
+    {
+      LCDMessage(LINE2_START_ADDR + UserApp_CursorPosition-20, UserApp_au8MyName);
+    }
+    else if(UserApp_CursorPosition > 28 && UserApp_CursorPosition <=39)
+    {
+      LCDMessage(LINE1_START_ADDR , &UserApp_au8MyName[40-UserApp_CursorPosition]);
+      LCDMessage(LINE2_START_ADDR + UserApp_CursorPosition-20, UserApp_au8MyName);
+    }
+    else if(UserApp_CursorPosition == 40)
+    {
+      LCDMessage(LINE1_START_ADDR , UserApp_au8MyName);
+      UserApp_CursorPosition = 0;
+    }
+    
+    
+    
+    /* New position is set, so update */
+    LCDCommand(LCD_ADDRESS_CMD | UserApp_CursorPosition);
+  } /* end BUTTON3 */
+  
+  if(WasButtonPressed(BUTTON2))
+  {
+    ButtonAcknowledge(BUTTON2);
+    
+    
+    /* Handle the two special cases or just the regular case */
+    
+    /* Otherwise just increment one space */
+    if(UserApp_CursorPosition == 0)
+    {
+      UserApp_CursorPosition = 40;
+    }
+    UserApp_CursorPosition--;
+    LCDCommand(LCD_CLEAR_CMD);
+    if(UserApp_CursorPosition > 28 && UserApp_CursorPosition <=39)
+    {
+      LCDMessage(LINE1_START_ADDR , &UserApp_au8MyName[40-UserApp_CursorPosition]);
+      LCDMessage(LINE2_START_ADDR + UserApp_CursorPosition-20, UserApp_au8MyName);
+    }
+    else if(UserApp_CursorPosition >19 && UserApp_CursorPosition <= 28)
+    {
+      LCDMessage(LINE2_START_ADDR + UserApp_CursorPosition-20, UserApp_au8MyName);
+    }
+    else if(UserApp_CursorPosition > 8 && UserApp_CursorPosition <= 19)
+    {
+      LCDMessage(LINE1_START_ADDR + UserApp_CursorPosition, UserApp_au8MyName);
+      LCDMessage(LINE2_START_ADDR , & UserApp_au8MyName[20-UserApp_CursorPosition]);
+    }
+    else if(UserApp_CursorPosition <= 8)
+    {
+      LCDMessage(LINE1_START_ADDR + UserApp_CursorPosition, UserApp_au8MyName);
+    }
+   
+    /* New position is set, so update */
+    LCDCommand(LCD_ADDRESS_CMD | UserApp_CursorPosition);
+  } /* end BUTTON2 */
+  
+  
+  
+  
 } /* end UserAppSM_Idle() */
      
+
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
