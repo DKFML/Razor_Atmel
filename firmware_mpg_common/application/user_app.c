@@ -65,6 +65,8 @@ static u8 au8UserInputBuffer[USER_INPUT_BUFFER_SIZE];  /* Char buffer */
 static u8 User_name[] = "A3.YeChenxiao";
 static u8 My_name  [] = "YeChenxiao";
 static u8 UserApp_CursorPosition = 0;
+
+  
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
@@ -156,6 +158,16 @@ void UserAppRunActiveState(void)
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
+int power(int basic_number,char times_number)
+{
+  u32 temp = 1;
+  for(u8 i=0 ;i<times_number;i++)
+  {
+    temp = basic_number * temp;
+  }
+  return temp;
+}
+
 
 /**********************************************************************************************************************
 State Machine Function Definitions
@@ -168,26 +180,21 @@ static void UserAppSM_Idle(void)
   static u8 u8NumCharsMessage[] = "\n\rCharacters in buffer:";
   static u8 u8BufferMessage[]   = "\n\rBuffer contents:\n\r";
   static u8 u8EmptyMessage[]    = "\n\rBuffer is empty !\n\r";
-  static u8 memfornote[]={0};
-  static u8 buffer_for_my_nameletter []={0};
+  static u8 memfornote[256]={0};
+  static u8 buffer_for_my_nameletter [15]={0};
+  static u8 buffer_for_number_of_memfornote[5] = {'0'};
   static u8 u8buffer_for_my_name_letter_count =0 ;
   static u16 countformemfornote =0;
-  static u8 *point_to_My_name_letter; 
+  static u8 *point_to_My_name_letter=My_name;
   static u16 u16count =0;
   static u16 u16count_for_blink_or_buzzer =0;
+  static u8 count_for_name_times =0;
   u8 u8CharCount;
+
   u16count_for_blink_or_buzzer++;
   /* Print message with number of characters in scanf buffer */
-  if(WasButtonPressed(BUTTON0))
-  {
-    ButtonAcknowledge(BUTTON0);
-    
-    DebugPrintf(u8NumCharsMessage);
-    DebugPrintNumber(G_u8DebugScanfCharCount);
-    DebugLineFeed();
-  }
   u16count++;
-  if(u16count == 250)
+  if(u16count == 50)
   {
     
     u16count = 0;
@@ -196,43 +203,126 @@ static void UserAppSM_Idle(void)
     au8UserInputBuffer[u8CharCount] = '\0';
     
     /* If there is at least one charater write it into array memfornote.(In fact ,whenever there is at most a letter.)*/
-    for(u8 i=0;i<u8CharCount;i++)
+    //for(u8 i=0;i<u8CharCount;i++)
+    if(u8CharCount>0)
     {
+      u8 i=0;
       memfornote[countformemfornote]=au8UserInputBuffer[i];
       
       //疑问：当用 &memfornote[countformemfornote]代替 &au8UserInputBuffer[i]时，显示会有其他
       LCDMessage(LINE2_START_ADDR+UserApp_CursorPosition, &au8UserInputBuffer[i]);
       
-      /*Comparing the letter to my name.*/
-      if(au8UserInputBuffer[i] == *point_to_My_name_letter || au8UserInputBuffer[i] +32 == *point_to_My_name_letter || au8UserInputBuffer[i] -32 == *point_to_My_name_letter)
+      /*Comparing the letter to my name.*point_to_My_name_letter || au8UserInputBuffer[i] +32 == *point_to_My_name_letter || au8UserInputBuffer[i] -32 == *point_to_My_name_letter*/
+      if((au8UserInputBuffer[i] == *point_to_My_name_letter) || (au8UserInputBuffer[i]+32 == *point_to_My_name_letter)||(au8UserInputBuffer[i] -32== *point_to_My_name_letter))
       {
-        point_to_My_name_letter++;
+        point_to_My_name_letter = point_to_My_name_letter+1;
         buffer_for_my_nameletter[u8buffer_for_my_name_letter_count]=au8UserInputBuffer[i];
         u8buffer_for_my_name_letter_count ++ ;
-        
       }
+      
       countformemfornote++;
       UserApp_CursorPosition++;
-      
       /*一行写满后，从头开始写*/
       if(UserApp_CursorPosition == 20)
       {
         UserApp_CursorPosition = 0;
       }
     }
-    memfornote[countformemfornote] = NULL;
-    buffer_for_my_nameletter[u8buffer_for_my_name_letter_count] = NULL;
+    memfornote[countformemfornote] = '\0';
+    buffer_for_my_nameletter[u8buffer_for_my_name_letter_count] = '\0';
+  }
+  if(WasButtonPressed(BUTTON0))
+  {
+    ButtonAcknowledge(BUTTON0);
+    LCDClearChars(LINE2_START_ADDR, 20);
+    UserApp_CursorPosition = 0;
+  }
+  //When the number over 100 ,it can not display
+  if(WasButtonPressed(BUTTON1))
+  {
+    ButtonAcknowledge(BUTTON1);
+    DebugPrintf("\n\rTotal characters number received :");
+    if(countformemfornote == 0)
+    {
+      DebugPrintNumber(0);
+    }
+    else
+    {
+      DebugPrintNumber(countformemfornote-1);
+    }
+    DebugLineFeed();
+    /*if(countformemfornote == 0)
+    {
+      LCDMessage(LINE2_START_ADDR, "0");
+    }
+    
+    for(u8 i=0;i<5;i++)
+    {
+      if(countformemfornote > power(10,i)-1&&countformemfornote < power(10,i+1))
+      {
+        u16 temp;
+        temp=countformemfornote;
+        u8 j=0;
+        for(j;j<i+1;j++)
+        {
+          buffer_for_number_of_memfornote[j] = temp/power(10,i-j)+48;
+          
+          temp=temp%power(10,i-j);
+        }
+        
+        buffer_for_number_of_memfornote[j] = '\0';
+      }
+    }
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, "Total number is :");
+    LCDMessage(LINE2_START_ADDR, buffer_for_number_of_memfornote);*/
+    
+  }
+  if(WasButtonPressed(BUTTON2))
+  {
+    ButtonAcknowledge(BUTTON2);
+    countformemfornote = 0;
+    DebugPrintf("\n\rCharacter count cleared !");
+    DebugLineFeed();
+    //LCDCommand(LCD_CLEAR_CMD);
+    //LCDMessage(LINE1_START_ADDR, "Number Cleared");
   }
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
+    LCDClearChars(LINE2_START_ADDR, 20);
     LCDMessage(LINE2_START_ADDR, buffer_for_my_nameletter);
   }
   /*Weather my name is detected*/
-  if(countformemfornote == 11)
+  if(u8buffer_for_my_name_letter_count == 10)
   {
-    countformemfornote = 0;
-    memfornote[0] = NULL;
+    point_to_My_name_letter=My_name;
+    u8buffer_for_my_name_letter_count=0;
+    count_for_name_times++;
+    for(u8 i=0;i<5;i++)
+    {
+      if(count_for_name_times > power(10,i)-1&&count_for_name_times < power(10,i+1))
+      {
+        u16 temp;
+        temp=count_for_name_times;
+        u8 j=0;
+        for(j;j<i+1;j++)
+        {
+          buffer_for_number_of_memfornote[j] = temp/power(10,i-j)+48;
+          
+          temp=temp%power(10,i-j);
+        }
+        
+        buffer_for_number_of_memfornote[j] = '\0';
+      }
+    }
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR, "name:");
+    LCDMessage(LINE1_START_ADDR + 5, buffer_for_my_nameletter);
+    LCDMessage(LINE2_START_ADDR, "Display ");
+    LCDMessage(LINE2_START_ADDR + 8, buffer_for_number_of_memfornote);
+    LCDMessage(LINE2_START_ADDR + 11, "times");
+    buffer_for_my_nameletter [0]=0;
     u16count_for_blink_or_buzzer=0;
     LedBlink(RED,LED_1HZ);
   }
