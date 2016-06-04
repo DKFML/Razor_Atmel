@@ -160,7 +160,7 @@ void UserAppRunActiveState(void)
 
 int power(int basic_number,char times_number)
 {
-  u32 temp = 1;
+  u32 temp = 1; 
   for(u8 i=0 ;i<times_number;i++)
   {
     temp = basic_number * temp;
@@ -189,6 +189,7 @@ static void UserAppSM_Idle(void)
   static u16 u16count =0;
   static u16 u16count_for_blink_or_buzzer =0;
   static u8 count_for_name_times =0;
+  static bool flag = 0;
   u8 u8CharCount;
 
   u16count_for_blink_or_buzzer++;
@@ -296,6 +297,7 @@ static void UserAppSM_Idle(void)
   /*Weather my name is detected*/
   if(u8buffer_for_my_name_letter_count == 10)
   {
+    flag=1;
     point_to_My_name_letter=My_name;
     u8buffer_for_my_name_letter_count=0;
     count_for_name_times++;
@@ -324,13 +326,23 @@ static void UserAppSM_Idle(void)
     LCDMessage(LINE2_START_ADDR + 11, "times");
     buffer_for_my_nameletter [0]=0;
     u16count_for_blink_or_buzzer=0;
-    LedBlink_BuzzerOn();
   }
   if(u16count_for_blink_or_buzzer == 5000)
   {
-    LedBlink_BuzzerOff();
+    flag=0;
+    
   }
-
+  if(flag)
+  {
+    blinkon();
+    BUZZER();
+    
+  }
+  else
+  {
+    blinkoff();
+    PWMAudioOff(BUZZER1);
+  }
 } /* end UserAppSM_Idle() */
      
 

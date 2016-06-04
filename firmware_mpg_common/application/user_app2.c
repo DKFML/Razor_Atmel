@@ -74,292 +74,47 @@ Function Definitions
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Public functions                                                                                                   */
 /*--------------------------------------------------------------------------------------------------------------------*/
-void LedBlink_BuzzerOn()
+
+void BUZZER(void)
 {
-  LedBlink(RED,LED_1HZ);
-  PWMAudioSetFrequency(BUZZER1, 500);
-  PWMAudioOn(BUZZER1);
+  static u8 u8notecounter = 0;
+  static u16 u16buzzerrate[]  = {586,586,523,586,697,697,783,
+  586,586,523,586,523,879,523,
+  586,586,523,586,697,783,879,
+  879,783,879,783,697,586,
+  586,586,523,586,697,697,783,
+  586,586,523,586,523,523,879,
+  586,586,523,586,697,697,783,
+  879,783,879,783,697,586,
+  697,658,586,523,523,523,586,879,783,879,
+  };
+  static u16 u16counter = 0;
+  u16counter++;
+  if(u16counter == 80)
+  {
+    u16counter=0;
+    PWMAudioSetFrequency(BUZZER1, u16buzzerrate[u8notecounter]);
+    PWMAudioOn(BUZZER1);
+    if(++u8notecounter == 63)
+    {
+      u8notecounter=0;
+    }
+  }
+} /* end UserAppSM_Idle() */
+void blinkon()
+{
+  static u16 u16count_for_500 = 0;
+  u16count_for_500++;
+  if(u16count_for_500==500)
+  {
+    u16count_for_500 = 0;
+    LedToggle(RED);
+  }
 }
 
-void LedBlink_BuzzerOff()
+void blinkoff()
 {
   LedOff(RED);
-  PWMAudioOff(BUZZER1);
-}
-/*--------------------------------------------------------------------------------------------------------------------*/
-/* Protected functions                                                                                                */
-/*--------------------------------------------------------------------------------------------------------------------*/
-
-/*--------------------------------------------------------------------------------------------------------------------
-Function: UserApp2Initialize
-
-Description:
-Initializes the State Machine and its variables.
-
-Requires:
-  -
-
-Promises:
-  - 
-*/
-void UserApp2Initialize(void)
-{
-  
-  /*Display my name and which group i am in*/
-  LCDCommand(LCD_CLEAR_CMD);
-  LCDMessage(LINE1_START_ADDR, User_name);
-  
-  /*My favorite backlight color*/
-  LedOn(LCD_RED);
-  LedOn(LCD_BLUE);
-  LedOff(LCD_GREEN);
-  
-  /* All discrete LEDs to off */
-  LedOff(WHITE);
-  LedOff(PURPLE);
-  LedOff(BLUE);
-  LedOff(CYAN);
-  LedOff(GREEN);
-  LedOff(YELLOW);
-  LedOff(ORANGE);
-  LedOff(RED);
-  
-  for(u8 i = 0; i < USER_INPUT_BUFFER_SIZE; i++)
-  {
-    au8UserInputBuffer[i] = 1;
-  }
-
-  /* If good initialization, set state to Idle */
-  if( 1 )
-  {
-    UserApp2_StateMachine = UserApp2SM_Idle;
-  }
-  else
-  {
-    /* The task isn't properly initialized, so shut it down and don't run */
-    UserApp2_StateMachine = UserApp2SM_FailedInit;
-  }
-
-} /* end UserApp2Initialize() */
-
-
-/*----------------------------------------------------------------------------------------------------------------------
-Function UserApp2RunActiveState()
-
-Description:
-Selects and runs one iteration of the current state in the state machine.
-All state machines have a TOTAL of 1ms to execute, so on average n state machines
-may take 1ms / n to execute.
-
-Requires:
-  - State machine function pointer points at current state
-
-Promises:
-  - Calls the function to pointed by the state machine function pointer
-*/
-void UserApp2RunActiveState(void)
-{
-  UserApp2_StateMachine();
-
-} /* end UserApp2RunActiveState */
-
-
-/*--------------------------------------------------------------------------------------------------------------------*/
-/* Private functions                                                                                                  */
-/*--------------------------------------------------------------------------------------------------------------------*/
-
-int power2(int basic_number,char times_number)
-{
-  u32 temp = 1;
-  for(u8 i=0 ;i<times_number;i++)
-  {
-    temp = basic_number * temp;
-  }
-  return temp;
 }
 
 
-/**********************************************************************************************************************
-State Machine Function Definitions
-**********************************************************************************************************************/
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-/* Wait for a message to be queued */
-static void UserApp2SM_Idle(void)
-{
-  static u8 u8NumCharsMessage[] = "\n\rCharacters in buffer:";
-  static u8 u8BufferMessage[]   = "\n\rBuffer contents:\n\r";
-  static u8 u8EmptyMessage[]    = "\n\rBuffer is empty !\n\r";
-  static u8 memfornote[256]={0};
-  static u8 buffer_for_my_nameletter [15]={0};
-  static u8 buffer_for_number_of_memfornote[5] = {'0'};
-  static u8 u8buffer_for_my_name_letter_count =0 ;
-  static u16 countformemfornote =0;
-  static u8 *point_to_My_name_letter=My_name;
-  static u16 u16count =0;
-  static u16 u16count_for_blink_or_buzzer =0;
-  static u8 count_for_name_times =0;
-  u8 u8CharCount;
-
-  u16count_for_blink_or_buzzer++;
-  /* Print message with number of characters in scanf buffer */
-  u16count++;
-  if(u16count == 50)
-  {
-    
-    u16count = 0;
-    /* Read the buffer and print the contents */
-    u8CharCount = DebugScanf(au8UserInputBuffer);
-    au8UserInputBuffer[u8CharCount] = '\0';
-    
-    /* If there is at least one charater write it into array memfornote.(In fact ,whenever there is at most a letter.)*/
-    //for(u8 i=0;i<u8CharCount;i++)
-    if(u8CharCount>0)
-    {
-      u8 i=0;
-      memfornote[countformemfornote]=au8UserInputBuffer[i];
-      
-      //疑问：当用 &memfornote[countformemfornote]代替 &au8UserInputBuffer[i]时，显示会有其他
-      LCDMessage(LINE2_START_ADDR+UserApp2_CursorPosition, &au8UserInputBuffer[i]);
-      
-      /*Comparing the letter to my name.*point_to_My_name_letter || au8UserInputBuffer[i] +32 == *point_to_My_name_letter || au8UserInputBuffer[i] -32 == *point_to_My_name_letter*/
-      if((au8UserInputBuffer[i] == *point_to_My_name_letter) || (au8UserInputBuffer[i]+32 == *point_to_My_name_letter)||(au8UserInputBuffer[i] -32== *point_to_My_name_letter))
-      {
-        point_to_My_name_letter = point_to_My_name_letter+1;
-        buffer_for_my_nameletter[u8buffer_for_my_name_letter_count]=au8UserInputBuffer[i];
-        u8buffer_for_my_name_letter_count ++ ;
-      }
-      
-      countformemfornote++;
-      UserApp2_CursorPosition++;
-      /*一行写满后，从头开始写*/
-      if(UserApp2_CursorPosition == 20)
-      {
-        UserApp2_CursorPosition = 0;
-      }
-    }
-    memfornote[countformemfornote] = '\0';
-    buffer_for_my_nameletter[u8buffer_for_my_name_letter_count] = '\0';
-  }
-  if(WasButtonPressed(BUTTON0))
-  {
-    ButtonAcknowledge(BUTTON0);
-    LCDClearChars(LINE2_START_ADDR, 20);
-    UserApp2_CursorPosition = 0;
-  }
-  //When the number over 100 ,it can not display
-  if(WasButtonPressed(BUTTON1))
-  {
-    ButtonAcknowledge(BUTTON1);
-    DebugPrintf("\n\rTotal characters number received :");
-    if(countformemfornote == 0)
-    {
-      DebugPrintNumber(0);
-    }
-    else
-    {
-      DebugPrintNumber(countformemfornote-1);
-    }
-    DebugLineFeed();
-    /*if(countformemfornote == 0)
-    {
-      LCDMessage(LINE2_START_ADDR, "0");
-    }
-    
-    for(u8 i=0;i<5;i++)
-    {
-      if(countformemfornote > power2(10,i)-1&&countformemfornote < power2(10,i+1))
-      {
-        u16 temp;
-        temp=countformemfornote;
-        u8 j=0;
-        for(j;j<i+1;j++)
-        {
-          buffer_for_number_of_memfornote[j] = temp/power2(10,i-j)+48;
-          
-          temp=temp%power2(10,i-j);
-        }
-        
-        buffer_for_number_of_memfornote[j] = '\0';
-      }
-    }
-    LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, "Total number is :");
-    LCDMessage(LINE2_START_ADDR, buffer_for_number_of_memfornote);*/
-    
-  }
-  if(WasButtonPressed(BUTTON2))
-  {
-    ButtonAcknowledge(BUTTON2);
-    countformemfornote = 0;
-    DebugPrintf("\n\rCharacter count cleared !");
-    DebugLineFeed();
-    //LCDCommand(LCD_CLEAR_CMD);
-    //LCDMessage(LINE1_START_ADDR, "Number Cleared");
-  }
-  if(WasButtonPressed(BUTTON3))
-  {
-    ButtonAcknowledge(BUTTON3);
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, buffer_for_my_nameletter);
-  }
-  /*Weather my name is detected*/
-  if(u8buffer_for_my_name_letter_count == 10)
-  {
-    point_to_My_name_letter=My_name;
-    u8buffer_for_my_name_letter_count=0;
-    count_for_name_times++;
-    for(u8 i=0;i<5;i++)
-    {
-      if(count_for_name_times > power2(10,i)-1&&count_for_name_times < power2(10,i+1))
-      {
-        u16 temp;
-        temp=count_for_name_times;
-        u8 j=0;
-        for(j;j<i+1;j++)
-        {
-          buffer_for_number_of_memfornote[j] = temp/power2(10,i-j)+48;
-          
-          temp=temp%power2(10,i-j);
-        }
-        
-        buffer_for_number_of_memfornote[j] = '\0';
-      }
-    }
-    LCDCommand(LCD_CLEAR_CMD);
-    LCDMessage(LINE1_START_ADDR, "name:");
-    LCDMessage(LINE1_START_ADDR + 5, buffer_for_my_nameletter);
-    LCDMessage(LINE2_START_ADDR, "Display ");
-    LCDMessage(LINE2_START_ADDR + 8, buffer_for_number_of_memfornote);
-    LCDMessage(LINE2_START_ADDR + 11, "times");
-    buffer_for_my_nameletter [0]=0;
-    u16count_for_blink_or_buzzer=0;
-    LedBlink(RED,LED_1HZ);
-  }
-  if(u16count_for_blink_or_buzzer == 5000)
-  {
-    LedOff(RED);
-  }
-
-} /* end UserApp2SM_Idle() */
-     
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-/* Handle an error */
-static void UserApp2SM_Error(void)          
-{
-  
-} /* end UserApp2SM_Error() */
-
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-/* State to sit in if init failed */
-static void UserApp2SM_FailedInit(void)          
-{
-    
-} /* end UserApp2SM_FailedInit() */
-
-
-/*--------------------------------------------------------------------------------------------------------------------*/
-/* End of File                                                                                                        */
-/*--------------------------------------------------------------------------------------------------------------------*/
