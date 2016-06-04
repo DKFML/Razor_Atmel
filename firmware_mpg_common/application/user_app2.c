@@ -7,7 +7,7 @@ To start a new task using this user_app as a template:
  2. Rename the files yournewtaskname.c and yournewtaskname.h
  3. Add yournewtaskname.c and yournewtaskname.h to the Application Include and Source groups in the IAR project
  4. Use ctrl-h (make sure "Match Case" is checked) to find and replace all instances of "user_app" with "yournewtaskname"
- 5. Use ctrl-h to find and replace all instances of "UserApp" with "YourNewTaskName"
+ 5. Use ctrl-h to find and replace all instances of "UserApp2" with "YourNewTaskName"
  6. Use ctrl-h to find and replace all instances of "USER_APP" with "YOUR_NEW_TASK_NAME"
  7. Add a call to YourNewTaskNameInitialize() in the init section of main
  8. Add a call to YourNewTaskNameRunActiveState() in the Super Loop section of main
@@ -25,10 +25,10 @@ Public functions:
 
 
 Protected System functions:
-void UserAppInitialize(void)
+void UserApp2Initialize(void)
 Runs required initialzation for the task.  Should only be called once in main init section.
 
-void UserAppRunActiveState(void)
+void UserApp2RunActiveState(void)
 Runs current task state.  Should only be called once in main loop.
 
 
@@ -41,7 +41,7 @@ Global variable definitions with scope across entire project.
 All Global variable names shall start with "G_"
 ***********************************************************************************************************************/
 /* New variables */
-volatile u32 G_u32UserAppFlags;                       /* Global state flags */
+volatile u32 G_u32UserApp2Flags;                       /* Global state flags */
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
@@ -56,15 +56,15 @@ extern u8 G_au8DebugScanfBuffer[];                     /* From debug.c */
 extern u8 G_u8DebugScanfCharCount;                     /* From debug.c  */
 /***********************************************************************************************************************
 Global variable definitions with scope limited to this local application.
-Variable names shall start with "UserApp_" and be declared as static.
+Variable names shall start with "UserApp2_" and be declared as static.
 ***********************************************************************************************************************/
-static fnCode_type UserApp_StateMachine;            /* The state machine function pointer */
-static u32 UserApp_u32Timeout;                      /* Timeout counter used across states */
+static fnCode_type UserApp2_StateMachine;            /* The state machine function pointer */
+static u32 UserApp2_u32Timeout;                      /* Timeout counter used across states */
 static u8 au8UserInputBuffer[USER_INPUT_BUFFER_SIZE];  /* Char buffer */
 
 static u8 User_name[] = "A3.YeChenxiao";
 static u8 My_name  [] = "YeChenxiao";
-static u8 UserApp_CursorPosition = 0;
+static u8 UserApp2_CursorPosition = 0;
 
   
 /**********************************************************************************************************************
@@ -74,14 +74,24 @@ Function Definitions
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Public functions                                                                                                   */
 /*--------------------------------------------------------------------------------------------------------------------*/
+void LedBlink_BuzzerOn()
+{
+  LedBlink(RED,LED_1HZ);
+  PWMAudioSetFrequency(BUZZER1, 500);
+  PWMAudioOn(BUZZER1);
+}
 
-
+void LedBlink_BuzzerOff()
+{
+  LedOff(RED);
+  PWMAudioOff(BUZZER1);
+}
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Protected functions                                                                                                */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------------------------------------------------
-Function: UserAppInitialize
+Function: UserApp2Initialize
 
 Description:
 Initializes the State Machine and its variables.
@@ -92,7 +102,7 @@ Requires:
 Promises:
   - 
 */
-void UserAppInitialize(void)
+void UserApp2Initialize(void)
 {
   
   /*Display my name and which group i am in*/
@@ -122,19 +132,19 @@ void UserAppInitialize(void)
   /* If good initialization, set state to Idle */
   if( 1 )
   {
-    UserApp_StateMachine = UserAppSM_Idle;
+    UserApp2_StateMachine = UserApp2SM_Idle;
   }
   else
   {
     /* The task isn't properly initialized, so shut it down and don't run */
-    UserApp_StateMachine = UserAppSM_FailedInit;
+    UserApp2_StateMachine = UserApp2SM_FailedInit;
   }
 
-} /* end UserAppInitialize() */
+} /* end UserApp2Initialize() */
 
 
 /*----------------------------------------------------------------------------------------------------------------------
-Function UserAppRunActiveState()
+Function UserApp2RunActiveState()
 
 Description:
 Selects and runs one iteration of the current state in the state machine.
@@ -147,18 +157,18 @@ Requires:
 Promises:
   - Calls the function to pointed by the state machine function pointer
 */
-void UserAppRunActiveState(void)
+void UserApp2RunActiveState(void)
 {
-  UserApp_StateMachine();
+  UserApp2_StateMachine();
 
-} /* end UserAppRunActiveState */
+} /* end UserApp2RunActiveState */
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
-int power(int basic_number,char times_number)
+int power2(int basic_number,char times_number)
 {
   u32 temp = 1;
   for(u8 i=0 ;i<times_number;i++)
@@ -175,7 +185,7 @@ State Machine Function Definitions
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for a message to be queued */
-static void UserAppSM_Idle(void)
+static void UserApp2SM_Idle(void)
 {
   static u8 u8NumCharsMessage[] = "\n\rCharacters in buffer:";
   static u8 u8BufferMessage[]   = "\n\rBuffer contents:\n\r";
@@ -210,7 +220,7 @@ static void UserAppSM_Idle(void)
       memfornote[countformemfornote]=au8UserInputBuffer[i];
       
       //疑问：当用 &memfornote[countformemfornote]代替 &au8UserInputBuffer[i]时，显示会有其他
-      LCDMessage(LINE2_START_ADDR+UserApp_CursorPosition, &au8UserInputBuffer[i]);
+      LCDMessage(LINE2_START_ADDR+UserApp2_CursorPosition, &au8UserInputBuffer[i]);
       
       /*Comparing the letter to my name.*point_to_My_name_letter || au8UserInputBuffer[i] +32 == *point_to_My_name_letter || au8UserInputBuffer[i] -32 == *point_to_My_name_letter*/
       if((au8UserInputBuffer[i] == *point_to_My_name_letter) || (au8UserInputBuffer[i]+32 == *point_to_My_name_letter)||(au8UserInputBuffer[i] -32== *point_to_My_name_letter))
@@ -221,11 +231,11 @@ static void UserAppSM_Idle(void)
       }
       
       countformemfornote++;
-      UserApp_CursorPosition++;
+      UserApp2_CursorPosition++;
       /*一行写满后，从头开始写*/
-      if(UserApp_CursorPosition == 20)
+      if(UserApp2_CursorPosition == 20)
       {
-        UserApp_CursorPosition = 0;
+        UserApp2_CursorPosition = 0;
       }
     }
     memfornote[countformemfornote] = '\0';
@@ -235,7 +245,7 @@ static void UserAppSM_Idle(void)
   {
     ButtonAcknowledge(BUTTON0);
     LCDClearChars(LINE2_START_ADDR, 20);
-    UserApp_CursorPosition = 0;
+    UserApp2_CursorPosition = 0;
   }
   //When the number over 100 ,it can not display
   if(WasButtonPressed(BUTTON1))
@@ -258,16 +268,16 @@ static void UserAppSM_Idle(void)
     
     for(u8 i=0;i<5;i++)
     {
-      if(countformemfornote > power(10,i)-1&&countformemfornote < power(10,i+1))
+      if(countformemfornote > power2(10,i)-1&&countformemfornote < power2(10,i+1))
       {
         u16 temp;
         temp=countformemfornote;
         u8 j=0;
         for(j;j<i+1;j++)
         {
-          buffer_for_number_of_memfornote[j] = temp/power(10,i-j)+48;
+          buffer_for_number_of_memfornote[j] = temp/power2(10,i-j)+48;
           
-          temp=temp%power(10,i-j);
+          temp=temp%power2(10,i-j);
         }
         
         buffer_for_number_of_memfornote[j] = '\0';
@@ -301,16 +311,16 @@ static void UserAppSM_Idle(void)
     count_for_name_times++;
     for(u8 i=0;i<5;i++)
     {
-      if(count_for_name_times > power(10,i)-1&&count_for_name_times < power(10,i+1))
+      if(count_for_name_times > power2(10,i)-1&&count_for_name_times < power2(10,i+1))
       {
         u16 temp;
         temp=count_for_name_times;
         u8 j=0;
         for(j;j<i+1;j++)
         {
-          buffer_for_number_of_memfornote[j] = temp/power(10,i-j)+48;
+          buffer_for_number_of_memfornote[j] = temp/power2(10,i-j)+48;
           
-          temp=temp%power(10,i-j);
+          temp=temp%power2(10,i-j);
         }
         
         buffer_for_number_of_memfornote[j] = '\0';
@@ -324,30 +334,30 @@ static void UserAppSM_Idle(void)
     LCDMessage(LINE2_START_ADDR + 11, "times");
     buffer_for_my_nameletter [0]=0;
     u16count_for_blink_or_buzzer=0;
-    LedBlink_BuzzerOn();
+    LedBlink(RED,LED_1HZ);
   }
   if(u16count_for_blink_or_buzzer == 5000)
   {
-    LedBlink_BuzzerOff();
+    LedOff(RED);
   }
 
-} /* end UserAppSM_Idle() */
+} /* end UserApp2SM_Idle() */
      
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Handle an error */
-static void UserAppSM_Error(void)          
+static void UserApp2SM_Error(void)          
 {
   
-} /* end UserAppSM_Error() */
+} /* end UserApp2SM_Error() */
 
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* State to sit in if init failed */
-static void UserAppSM_FailedInit(void)          
+static void UserApp2SM_FailedInit(void)          
 {
     
-} /* end UserAppSM_FailedInit() */
+} /* end UserApp2SM_FailedInit() */
 
 
 /*--------------------------------------------------------------------------------------------------------------------*/
