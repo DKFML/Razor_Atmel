@@ -291,8 +291,16 @@ static void UserAppSM_Idle(void)
   if(WasButtonPressed(BUTTON3))
   {
     ButtonAcknowledge(BUTTON3);
-    LCDClearChars(LINE2_START_ADDR, 20);
-    LCDMessage(LINE2_START_ADDR, buffer_for_my_nameletter);
+    if(buffer_for_my_nameletter[0] == 0)
+    {
+      LCDClearChars(LINE2_START_ADDR, 20);
+      LCDMessage(LINE2_START_ADDR, "No Letter");
+    }
+    else
+    {
+      LCDClearChars(LINE2_START_ADDR, 20);
+      LCDMessage(LINE2_START_ADDR, buffer_for_my_nameletter);
+    }
   }
   /*Weather my name is detected*/
   if(u8buffer_for_my_name_letter_count == 10)
