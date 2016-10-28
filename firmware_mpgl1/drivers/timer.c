@@ -129,15 +129,23 @@ Promises:
 void TimerInitialize(void)
 {
   /* Load the block configuration register */
-
+  AT91C_BASE_TCB1 -> TCB_BMR = TCB_BMR_INIT;
+  
   /* Channel 0 settings not configured at this time */
   
   /* Load Channel 1 settings */
+  /*将计时器1的相关初始设置，加载到内部寄存器中初始化该计数器*/
+  AT91C_BASE_TC1 -> TC_CCR = TC1_CCR_INIT;
+  AT91C_BASE_TC1 -> TC_CMR = TC1_CMR_INIT;
+  AT91C_BASE_TC1 -> TC_IER = TC1_IER_INIT;
+  AT91C_BASE_TC1 -> TC_IDR = TC1_IDR_INIT;
+  AT91C_BASE_TC1 -> TC_RC = TC1_RC_INIT;
   
   /* Set the default callback and activate the timer clock */
-
+  fpTimerCallback = TimerDefaultCallback;
+  AT91C_BASE_TC1 -> TC_CCR = TC1_CCR_INIT;
+  
   /* Channel 2 settings not configured at this time */
-
   
   /* If good initialization, set state to Idle */
   if( 1 )

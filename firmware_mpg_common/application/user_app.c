@@ -88,7 +88,9 @@ Promises:
 */
 void UserAppInitialize(void)
 {
-  
+  LedOff(LCD_RED);
+  LedOff(LCD_GREEN);
+  LedOff(LCD_BLUE);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
